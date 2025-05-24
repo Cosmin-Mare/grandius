@@ -4,6 +4,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { Press_Start_2P } from "next/font/google";
 import styles from "@/styles/Home.module.css";
 import ShaderCanvas from "@/components/ShaderCanvas";
+import GameLogic from "@/components/GameLogic";
 import { useState } from "react";
 
 const pressStart2P = Press_Start_2P({
@@ -14,52 +15,35 @@ const pressStart2P = Press_Start_2P({
 
 export default function Home() {
   const [gameStarted, setGameStarted] = useState(false);
-  const [currentDay, setCurrentDay] = useState(0);
-  const [playerCards, setPlayerCards] = useState([]);
-  const [opponentCards, setOpponentCards] = useState([]);
-  const [selectedCardId, setSelectedCardId] = useState(null);
-  const [playedCard, setPlayedCard] = useState(null);
+  const [gameState, setGameState] = useState(null);
   const [showHowToPlay, setShowHowToPlay] = useState(false);
   const [showPlayPrompt, setShowPlayPrompt] = useState(true);
+  const [showQuitPopup, setShowQuitPopup] = useState(false);
 
   const handleStartGame = () => {
     setGameStarted(true);
-    setCurrentDay(1);
     setShowPlayPrompt(true);
-    // Deal 5 cards to player
-    setPlayerCards([
-      { id: 1, image: "/cards/RH2_test2.png" },
-      { id: 2, image: "/cards/RH2_test2.png" },
-      { id: 3, image: "/cards/RH2_test2.png" },
-      { id: 4, image: "/cards/RH2_test2.png" },
-      { id: 5, image: "/cards/RH2_test2.png" }
-    ]);
-    // Deal 5 cards to opponent
-    setOpponentCards([
-      { id: 6, image: "/cards/RH2_test2.png" },
-      { id: 7, image: "/cards/RH2_test2.png" },
-      { id: 8, image: "/cards/RH2_test2.png" },
-      { id: 9, image: "/cards/RH2_test2.png" },
-      { id: 10, image: "/cards/RH2_test2.png" }
-    ]);
+  };
+
+  const handleGameStateChange = (newState) => {
+    setGameState(newState);
   };
 
   const handleCardClick = (cardId) => {
-    if (selectedCardId === cardId) return; // Don't do anything if clicking the same card
-    
-    const cardToPlay = playerCards.find(card => card.id === cardId);
-    if (cardToPlay) {
-      setPlayedCard(cardToPlay);
-      setPlayerCards(prev => prev.filter(card => card.id !== cardId));
-      setSelectedCardId(cardId);
-      setShowPlayPrompt(false);
-    }
+    if (!gameState) return;
+    gameState.playCard(cardId);
+    setShowPlayPrompt(false);
+  };
+
+  const handleEndTurn = () => {
+    if (!gameState) return;
+    gameState.endTurn();
   };
 
   return (
     <>
       <div className={styles.shaderContainer}>
-        <ShaderCanvas gameState={gameStarted} day={currentDay} />
+        <ShaderCanvas gameState={gameStarted} day={gameState?.currentRound || 0} />
       </div>
       <Head>
         <title>Decimanus</title>
@@ -78,8 +62,19 @@ export default function Home() {
               <div className={styles.ctas}>
                 <button className={styles.primary} onClick={handleStartGame}>Start</button>
                 <button className={styles.secondary} onClick={() => setShowHowToPlay(true)}>How to play</button>
-                <button className={styles.secondary}>Quit</button>
+                <button className={styles.secondary} onClick={() => setShowQuitPopup(true)}>Quit</button>
               </div>
+              {showQuitPopup && (
+                <div className={styles.modalOverlay} onClick={() => setShowQuitPopup(false)}>
+                  <div className={styles.modal} onClick={e => e.stopPropagation()}>
+                    <h2>Quit?</h2>
+                    <div className={styles.modalContent}>
+                      <p>It's a web game lmao just close the tab</p>
+                    </div>
+                    <button className={styles.closeButton} onClick={() => setShowQuitPopup(false)}>Bruh</button>
+                  </div>
+                </div>
+              )}
               {showHowToPlay && (
                 <div className={styles.modalOverlay} onClick={() => setShowHowToPlay(false)}>
                   <div className={styles.modal} onClick={e => e.stopPropagation()}>
@@ -114,31 +109,75 @@ export default function Home() {
           )}
           {gameStarted && (
             <>
+              <GameLogic onGameStateChange={handleGameStateChange} />
               <div className={styles.deck} />
+              <div className={styles.gameInfo}>
+                <div className={styles.score}>
+                  <div>Player: {gameState?.playerScore || 0}</div>
+                  <div>Opponent: {gameState?.opponentScore || 0}</div>
+                </div>
+                <div className={styles.round}>Round: {gameState?.currentRound || 1}</div>
+              </div>
               <div className={styles.opponentCardsContainer}>
-                {opponentCards.map((card) => (
+                {gameState?.opponentCards?.map((card) => (
                   <div key={card.id} className={styles.card}>
-                    <img src={card.image} />
+                    <div className={styles.cardContent}>
+                      <div className={styles.cardValue}>{card.valueName}</div>
+                      <div className={styles.cardSuit}>{card.suit}</div>
+                    </div>
                   </div>
                 ))}
               </div>
-              {showPlayPrompt && <div className={styles.playPrompt}>Play a card</div>}
+              {showPlayPrompt && gameState?.currentPlayer === 'player' && (
+                <div className={styles.playPrompt}>Play a card higher than {gameState?.centerCard?.valueName || 'any card'}</div>
+              )}
+              <div className={styles.centerArea}>
+                {gameState?.centerCard && (
+                  <div className={styles.centerCard}>
+                    <div className={styles.cardContent}>
+                      <div className={styles.cardValue}>{gameState.centerCard.valueName}</div>
+                      <div className={styles.cardSuit}>{gameState.centerCard.suit}</div>
+                    </div>
+                  </div>
+                )}
+              </div>
               <div className={styles.cardsContainer}>
-                {playerCards.map((card) => (
+                {gameState?.playerCards?.map((card) => (
                   <div 
                     key={card.id} 
-                    className={`${styles.card} ${selectedCardId === card.id ? styles.selected : ''}`}
+                    className={`${styles.card} ${
+                      gameState.playableCards?.some(c => c.id === card.id) ? styles.playable : ''
+                    } ${gameState.lastPlayedCard?.id === card.id ? styles.selected : ''}`}
                     onClick={() => handleCardClick(card.id)}
                   >
-                    <img src={card.image} />
+                    <div className={styles.cardContent}>
+                      <div className={styles.cardValue}>{card.valueName}</div>
+                      <div className={styles.cardSuit}>{card.suit}</div>
+                    </div>
                   </div>
                 ))}
               </div>
-              {playedCard && (
-                <div className={styles.playedCardContainer}>
-                  <div className={`${styles.card} ${styles.played}`}>
-                    <img src={playedCard.image} />
-                  </div>
+              {gameState?.currentPlayer === 'player' && gameState?.roundStarted && (
+                <button 
+                  onClick={handleEndTurn} 
+                  className={styles.endTurnButton}
+                  disabled={gameState?.hasPlayedCard}
+                >
+                  End Turn
+                </button>
+              )}
+              {gameState?.roundWinner && (
+                <div className={styles.roundResult}>
+                  {gameState.roundWinner === 'player' ? 'You won this round!' : 
+                   gameState.roundWinner === 'opponent' ? 'Opponent won this round!' : 
+                   'It\'s a tie!'}
+                </div>
+              )}
+              {gameState?.gameWinner && gameState?.showGameOver && (
+                <div className={styles.gameResult}>
+                  {gameState.gameWinner === 'player' ? 'You won the game!' : 
+                   gameState.gameWinner === 'opponent' ? 'Opponent won the game!' : 
+                   'The game ended in a tie!'}
                 </div>
               )}
             </>
