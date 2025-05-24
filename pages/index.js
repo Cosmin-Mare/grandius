@@ -117,6 +117,9 @@ export default function Home() {
                   <div>Opponent: {gameState?.opponentScore || 0}</div>
                 </div>
                 <div className={styles.round}>Round: {gameState?.currentRound || 1}</div>
+                <div className={styles.turnIndicator}>
+                  {gameState?.currentPlayer === 'player' ? "Your turn" : "Opponent's turn"}
+                </div>
               </div>
               <div className={styles.opponentCardsContainer}>
                 {gameState?.opponentCards?.map((card) => (
@@ -129,7 +132,11 @@ export default function Home() {
                 ))}
               </div>
               {showPlayPrompt && gameState?.currentPlayer === 'player' && (
-                <div className={styles.playPrompt}>Play a card higher than {gameState?.centerCard?.valueName || 'any card'}</div>
+                <div className={styles.playPrompt}>
+                  {gameState?.centerCard 
+                    ? `Play a card higher than ${gameState.centerCard.valueName}`
+                    : 'Play any card to start the round'}
+                </div>
               )}
               <div className={styles.centerArea}>
                 {gameState?.centerCard && (

@@ -111,7 +111,7 @@ export default function GameLogic({ onGameStateChange }) {
 
   // Opponent's turn
   useEffect(() => {
-    if (currentPlayer === 'opponent' && !gameWinner && roundStarted) {
+    if (currentPlayer === 'opponent' && !gameWinner) {
       const playableCards = opponentCards.filter(card => 
         !centerCard || card.value > centerCard.value
       );
@@ -134,6 +134,7 @@ export default function GameLogic({ onGameStateChange }) {
         setRoundCards(prev => [...prev, { card: cardToPlay, player: 'opponent' }]);
         setCurrentPlayer('player');
         setHasPlayedCard(false);
+        setRoundStarted(true);
 
         // Check if opponent has no more cards
         if (opponentCards.length === 1) {
@@ -144,7 +145,7 @@ export default function GameLogic({ onGameStateChange }) {
         }
       }, 1000);
     }
-  }, [currentPlayer, centerCard, opponentCards, roundStarted]);
+  }, [currentPlayer, centerCard, opponentCards, gameWinner]);
 
   // End the current round
   const endRound = (winner) => {
@@ -170,7 +171,7 @@ export default function GameLogic({ onGameStateChange }) {
         setCurrentRound(prev => prev + 1);
         setCenterCard(null);
         setLastPlayedCard(null);
-        setCurrentPlayer('player');
+        setCurrentPlayer(winner);
         setRoundWinner(null);
         setRoundCards([]);
         setRoundStarted(false);
