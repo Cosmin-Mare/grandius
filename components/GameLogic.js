@@ -32,6 +32,8 @@ export default function GameLogic({ onGameStateChange }) {
   const [roundStarted, setRoundStarted] = useState(false);
   const [hasPlayedCard, setHasPlayedCard] = useState(false);
   const [showGameOver, setShowGameOver] = useState(false);
+  const [showHigherCardMessage, setShowHigherCardMessage] = useState(false);
+  const [isOpponentFirstCard, setIsOpponentFirstCard] = useState(true);
 
   // Initialize game
   const startGame = () => {
@@ -53,6 +55,8 @@ export default function GameLogic({ onGameStateChange }) {
     setRoundStarted(false);
     setHasPlayedCard(false);
     setShowGameOver(false);
+    setShowHigherCardMessage(false);
+    setIsOpponentFirstCard(true);
   };
 
   // Start game when component mounts
@@ -140,6 +144,15 @@ export default function GameLogic({ onGameStateChange }) {
         setHasPlayedCard(false);
         setRoundStarted(true);
 
+        // Show the "Play a Higher Card!" message if it's the opponent's first card
+        if (isOpponentFirstCard) {
+          setShowHigherCardMessage(true);
+          setIsOpponentFirstCard(false);
+          setTimeout(() => {
+            setShowHigherCardMessage(false);
+          }, 2000); // Hide the message after 2 seconds
+        }
+
         // Check if opponent has no more cards
         if (opponentCards.length === 1) {
           // Only end the round if the player has played a card
@@ -149,7 +162,7 @@ export default function GameLogic({ onGameStateChange }) {
         }
       }, 1000);
     }
-  }, [currentPlayer, centerCard, opponentCards, gameWinner]);
+  }, [currentPlayer, centerCard, opponentCards, gameWinner, isOpponentFirstCard]);
 
   // End the current round
   const endRound = (winner) => {
@@ -221,6 +234,7 @@ export default function GameLogic({ onGameStateChange }) {
       roundStarted,
       hasPlayedCard,
       showGameOver,
+      showHigherCardMessage,
       playableCards: getPlayableCards()
     });
     onGameStateChange({
@@ -238,6 +252,7 @@ export default function GameLogic({ onGameStateChange }) {
       roundStarted,
       hasPlayedCard,
       showGameOver,
+      showHigherCardMessage,
       playableCards: getPlayableCards(),
       playCard,
       endTurn
@@ -256,7 +271,8 @@ export default function GameLogic({ onGameStateChange }) {
     roundCards,
     roundStarted,
     hasPlayedCard,
-    showGameOver
+    showGameOver,
+    showHigherCardMessage
   ]);
 
   return null; // This component doesn't render anything directly

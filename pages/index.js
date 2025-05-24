@@ -163,6 +163,11 @@ export default function Home() {
                     : 'Play any card to start the round'}
                 </div>
               )}
+              {gameState?.showHigherCardMessage && (
+                <div className={styles.higherCardMessage}>
+                  Play a Higher Card!
+                </div>
+              )}
               <div className={styles.centerArea}>
                 {gameState?.centerCard && (
                   <div className={styles.centerCard}>
