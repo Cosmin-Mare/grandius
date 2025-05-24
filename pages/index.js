@@ -124,10 +124,13 @@ export default function Home() {
               <div className={styles.opponentCardsContainer}>
                 {gameState?.opponentCards?.map((card) => (
                   <div key={card.id} className={styles.card}>
-                    <div className={styles.cardContent}>
-                      <div className={styles.cardValue}>{card.valueName}</div>
-                      <div className={styles.cardSuit}>{card.suit}</div>
-                    </div>
+                    <Image
+                      src={`/cards/${card.suit.charAt(0).toUpperCase()}${card.valueName}.png`}
+                      alt={`${card.valueName} of ${card.suit}`}
+                      width={100}
+                      height={140}
+                      className={styles.cardImage}
+                    />
                   </div>
                 ))}
               </div>
@@ -141,10 +144,13 @@ export default function Home() {
               <div className={styles.centerArea}>
                 {gameState?.centerCard && (
                   <div className={styles.centerCard}>
-                    <div className={styles.cardContent}>
-                      <div className={styles.cardValue}>{gameState.centerCard.valueName}</div>
-                      <div className={styles.cardSuit}>{gameState.centerCard.suit}</div>
-                    </div>
+                    <Image
+                      src={`/cards/${gameState.centerCard.suit.charAt(0).toUpperCase()}${gameState.centerCard.valueName}.png`}
+                      alt={`${gameState.centerCard.valueName} of ${gameState.centerCard.suit}`}
+                      width={100}
+                      height={140}
+                      className={styles.cardImage}
+                    />
                   </div>
                 )}
               </div>
@@ -157,10 +163,13 @@ export default function Home() {
                     } ${gameState.lastPlayedCard?.id === card.id ? styles.selected : ''}`}
                     onClick={() => handleCardClick(card.id)}
                   >
-                    <div className={styles.cardContent}>
-                      <div className={styles.cardValue}>{card.valueName}</div>
-                      <div className={styles.cardSuit}>{card.suit}</div>
-                    </div>
+                    <Image
+                      src={`/cards/${card.suit.charAt(0).toUpperCase()}${card.valueName}.png`}
+                      alt={`${card.valueName} of ${card.suit}`}
+                      width={100}
+                      height={140}
+                      className={styles.cardImage}
+                    />
                   </div>
                 ))}
               </div>
