@@ -1,0 +1,3 @@
+- [ ] Add a Double Score card
+- [ ] Add a Redraw Cards card (If player not happy with their hands, they can redraw once with this card)
+- [ ] Add a multiplayer?(todo)
