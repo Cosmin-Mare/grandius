@@ -127,8 +127,8 @@ export default function Home() {
                     <Image
                       src={`/cards/${card.suit.charAt(0).toUpperCase()}${card.valueName}.png`}
                       alt={`${card.valueName} of ${card.suit}`}
-                      width={100}
-                      height={140}
+                      width={60}
+                      height={84}
                       className={styles.cardImage}
                     />
                   </div>
@@ -147,8 +147,8 @@ export default function Home() {
                     <Image
                       src={`/cards/${gameState.centerCard.suit.charAt(0).toUpperCase()}${gameState.centerCard.valueName}.png`}
                       alt={`${gameState.centerCard.valueName} of ${gameState.centerCard.suit}`}
-                      width={100}
-                      height={140}
+                      width={70}
+                      height={98}
                       className={styles.cardImage}
                     />
                   </div>
@@ -166,8 +166,8 @@ export default function Home() {
                     <Image
                       src={`/cards/${card.suit.charAt(0).toUpperCase()}${card.valueName}.png`}
                       alt={`${card.valueName} of ${card.suit}`}
-                      width={100}
-                      height={140}
+                      width={60}
+                      height={84}
                       className={styles.cardImage}
                     />
                   </div>

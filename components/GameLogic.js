@@ -5,13 +5,17 @@ const SUITS = ['hearts', 'diamonds', 'clubs', 'spades'];
 const VALUES = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
 
 const DEBUG_CARDS = SUITS.flatMap(suit => 
-  VALUES.map((value, index) => ({
-    id: `${suit}-${value}`,
-    value: index + 2, // 2-14 (Ace is highest)
-    suit,
-    valueName: value
-  }))
-);
+  VALUES.map((value, index) => {
+    // Skip the queen of hearts
+    if (suit === 'hearts' && value === 'Q') return null;
+    return {
+      id: `${suit}-${value}`,
+      value: index + 2, // 2-14 (Ace is highest)
+      suit,
+      valueName: value
+    };
+  })
+).filter(card => card !== null); // Remove null entries
 
 export default function GameLogic({ onGameStateChange }) {
   const [playerCards, setPlayerCards] = useState([]);
