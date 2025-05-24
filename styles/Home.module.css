@@ -615,6 +615,27 @@ T.page {
 }
 
 .gameResult {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(0, 0, 0, 0.9);
+  padding: 2rem;
+  border-radius: 8px;
+  text-align: center;
+  z-index: 1000;
+  border: 2px solid #fff;
+  min-width: 300px;
+}
+
+.matchStats {
+  margin: 1rem 0;
+  font-size: 1.2rem;
+  color: #fff;
+  font-family: var(--font-pixel);
+}
+
+.gameResult {
   font-size: 1.5rem;
   padding: 2rem 4rem;
 }
@@ -678,4 +699,25 @@ T.page {
   padding: 5px 10px;
   border-radius: 5px;
   background: rgba(0, 0, 0, 0.2);
+}
+
+.matchScorePanel {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: rgba(128, 0, 255, 0.15);
+  padding: 1rem;
+  border-radius: 8px;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(5px);
+  font-family: var(--font-pixel);
+  color: rgba(255, 255, 255, 0.95);
+  text-shadow: 0 0 10px rgba(128, 0, 255, 0.5);
+  z-index: 10;
+  text-align: right;
+  font-size: 1.2rem;
+}
+
+.matchScorePanel div {
+  margin: 0.5rem 0;
 }
