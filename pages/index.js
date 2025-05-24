@@ -4,8 +4,8 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { Press_Start_2P } from "next/font/google";
 import styles from "@/styles/Home.module.css";
 import ShaderCanvas from "@/components/ShaderCanvas";
-import GameLogic from "@/components/GameLogic";
-import { useState, useEffect } from "react";
+import GameLogic, { SPECIAL_CARDS } from "@/components/GameLogic";
+import { useState, useEffect, useEffect } from "react";
 import Link from "next/link";
 
 const pressStart2P = Press_Start_2P({
@@ -22,15 +22,6 @@ export default function Home() {
   const [showQuitPopup, setShowQuitPopup] = useState(false);
   const [matchesWon, setMatchesWon] = useState(0);
   const [matchesLost, setMatchesLost] = useState(0);
-  const [isFirstGame, setIsFirstGame] = useState(true);
-
-  useEffect(() => {
-    // Check local storage on mount
-    const hasViewedHowToPlay = localStorage.getItem('hasViewedHowToPlay');
-    if (hasViewedHowToPlay) {
-      setIsFirstGame(false);
-    }
-  }, []);
 
   const actuallyStartGame = () => {
     setGameStarted(true);
@@ -46,6 +37,7 @@ export default function Home() {
   };
 
   const handleGameStateChange = (newState) => {
+    console.log('Game state changed:', newState);
     setGameState(newState);
     if (newState?.gameWinner && newState?.showGameOver) {
       if (newState.gameWinner === 'player') {
@@ -53,6 +45,14 @@ export default function Home() {
       } else if (newState.gameWinner === 'opponent') {
         setMatchesLost(prev => prev + 1);
       }
+    }
+    // Update peeked card state
+    if (newState?.showPeekedCard) {
+      console.log('Setting peeked card:', newState.showPeekedCard);
+      setShowPeekedCard(newState.showPeekedCard);
+    } else if (newState?.showPeekedCard === null) {
+      console.log('Clearing peeked card');
+      setShowPeekedCard(null);
     }
   };
 
@@ -72,15 +72,6 @@ export default function Home() {
   const handleEndTurn = () => {
     if (!gameState) return;
     gameState.endTurn();
-  };
-
-  const handleCloseHowToPlay = () => {
-    setShowHowToPlay(false);
-    if (isFirstGame) {
-      localStorage.setItem('hasViewedHowToPlay', 'true');
-      setIsFirstGame(false);
-      actuallyStartGame();
-    }
   };
 
   return (
@@ -179,7 +170,7 @@ export default function Home() {
                   {gameState?.opponentCards?.map((card) => (
                     <div key={card.id} className={styles.card}>
                       <Image
-                        src={"/cards/back.png"}
+                        src="/cards/back.png"
                         alt="Card back"
                         width={60}
                         height={84}
@@ -205,12 +196,36 @@ export default function Home() {
                 {gameState?.centerCard && (
                   <div className={styles.centerCard}>
                     <Image
-                      src={`/cards/${gameState.centerCard.suit.charAt(0).toUpperCase()}${gameState.centerCard.valueName}.png`}
-                      alt={`${gameState.centerCard.valueName} of ${gameState.centerCard.suit}`}
+                      src={gameState.centerCard.effect ? `/cards/${gameState.centerCard.id}.png` : `/cards/${gameState.centerCard.suit.charAt(0).toUpperCase()}${gameState.centerCard.valueName}.png`}
+                      alt={gameState.centerCard.effect ? gameState.centerCard.id : `${gameState.centerCard.valueName} of ${gameState.centerCard.suit}`}
                       width={70}
                       height={98}
                       className={styles.cardImage}
                     />
+                  </div>
+                )}
+                {gameState?.specialCardPile && gameState.specialCardPile.length > 0 && (
+                  <div className={styles.specialCardPile}>
+                    <h3>Special Cards</h3>
+                    <div className={styles.specialCards}>
+                      {gameState.specialCardPile.map((card, index) => (
+                        <div key={`${card.id}-${index}`} className={styles.specialCard}>
+                          <div className={styles.tooltip}>
+                            {SPECIAL_CARDS[card.id]?.tooltip || card.effect}
+                          </div>
+                          <Image
+                            src={`/cards/${card.id}.png`}
+                            alt={card.id}
+                            width={60}
+                            height={84}
+                            className={styles.cardImage}
+                          />
+                          <div className={styles.cardOwner}>
+                            {card.player === 'player' ? 'You' : 'Opponent'}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 )}
               </div>
@@ -225,9 +240,14 @@ export default function Home() {
                       onClick={isPlayable ? () => handleCardClick(card.id) : undefined}
                       style={{ pointerEvents: isPlayersTurn ? 'auto' : 'none', opacity: isPlayersTurn ? 1 : 0.5 }}
                     >
+                      {card.effect && (
+                        <div className={styles.tooltip}>
+                          {SPECIAL_CARDS[card.id]?.tooltip || card.effect}
+                        </div>
+                      )}
                       <Image
-                        src={`/cards/${card.suit.charAt(0).toUpperCase()}${card.valueName}.png`}
-                        alt={`${card.valueName} of ${card.suit}`}
+                        src={card.effect ? `/cards/${card.id}.png` : `/cards/${card.suit.charAt(0).toUpperCase()}${card.valueName}.png`}
+                        alt={card.effect ? card.id : `${card.valueName} of ${card.suit}`}
                         width={60}
                         height={84}
                         className={styles.cardImage}
@@ -269,6 +289,31 @@ export default function Home() {
                   >
                     Play Again
                   </button>
+                </div>
+              )}
+              {showFireWarning && (
+                <div className={styles.fireWarning}>
+                  Play a 2 or lose!
+                </div>
+              )}
+              {showPeekedCard && (
+                <div className={styles.peekedCard}>
+                  <h3>Opponent's Highest Card:</h3>
+                  <div className={styles.card}>
+                    <Image
+                      src={showPeekedCard.effect ? `/cards/${showPeekedCard.id}.png` : `/cards/${showPeekedCard.suit.charAt(0).toUpperCase()}${showPeekedCard.valueName}.png`}
+                      alt={showPeekedCard.effect ? showPeekedCard.id : `${showPeekedCard.valueName} of ${showPeekedCard.suit}`}
+                      width={60}
+                      height={84}
+                      className={styles.cardImage}
+                    />
+                  </div>
+                  <button onClick={() => setShowPeekedCard(null)}>Close</button>
+                </div>
+              )}
+              {gameState?.bannedRank && (
+                <div className={styles.bannedRank}>
+                  {gameState.bannedRank} cards are banned!
                 </div>
               )}
             </>

@@ -4,18 +4,54 @@ import { useState, useEffect } from 'react';
 const SUITS = ['hearts', 'diamonds', 'clubs', 'spades'];
 const VALUES = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
 
-const DEBUG_CARDS = SUITS.flatMap(suit => 
-  VALUES.map((value, index) => {
-    // Skip the queen of hearts
-    if (suit === 'hearts' && value === 'Q') return null;
-    return {
-      id: `${suit}-${value}`,
-      value: index + 2, // 2-14 (Ace is highest)
-      suit,
-      valueName: value
-    };
-  })
-).filter(card => card !== null); // Remove null entries
+// Special card types
+export const SPECIAL_CARDS = {
+  random: { 
+    id: 'random', 
+    value: 15, 
+    effect: 'reshuffle',
+    tooltip: 'Reshuffles both players\' hands'
+  },
+  twoturns: { 
+    id: 'twoturns', 
+    value: 17, 
+    effect: 'double',
+    tooltip: 'Allows playing two cards in one turn'
+  },
+  plus1: { 
+    id: 'plus1', 
+    value: 19, 
+    effect: 'increment',
+    tooltip: 'Adds a copy of the center card with +1 value to your hand'
+  },
+  disolved: { 
+    id: 'disolved', 
+    value: 22, 
+    effect: 'dissolve',
+    tooltip: 'Removes the previous card from play'
+  }
+};
+
+const DEBUG_CARDS = [
+  ...SUITS.flatMap(suit => 
+    VALUES.map((value, index) => {
+      // Skip the queen of hearts
+      if (suit === 'hearts' && value === 'Q') return null;
+      return {
+        id: `${suit}-${value}`,
+        value: index + 2, // 2-14 (Ace is highest)
+        suit,
+        valueName: value
+      };
+    })
+  ).filter(card => card !== null),
+  // Add multiple copies of special cards
+  ...Object.values(SPECIAL_CARDS),
+  ...Object.values(SPECIAL_CARDS),
+  ...Object.values(SPECIAL_CARDS),
+  ...Object.values(SPECIAL_CARDS),
+  ...Object.values(SPECIAL_CARDS)
+];
 
 export default function GameLogic({ onGameStateChange }) {
   const [playerCards, setPlayerCards] = useState([]);
@@ -34,6 +70,11 @@ export default function GameLogic({ onGameStateChange }) {
   const [showGameOver, setShowGameOver] = useState(false);
   const [showHigherCardMessage, setShowHigherCardMessage] = useState(false);
   const [isOpponentFirstCard, setIsOpponentFirstCard] = useState(true);
+  // New state for special card effects
+  const [canPlayTwoCards, setCanPlayTwoCards] = useState(false);
+  const [cardsPlayedThisTurn, setCardsPlayedThisTurn] = useState(0);
+  // New state for special cards
+  const [specialCardPile, setSpecialCardPile] = useState([]);
 
   // Initialize game
   const startGame = () => {
@@ -57,6 +98,9 @@ export default function GameLogic({ onGameStateChange }) {
     setShowGameOver(false);
     setShowHigherCardMessage(false);
     setIsOpponentFirstCard(true);
+    setCanPlayTwoCards(false);
+    setCardsPlayedThisTurn(0);
+    setSpecialCardPile([]);
   };
 
   // Start game when component mounts
@@ -65,20 +109,90 @@ export default function GameLogic({ onGameStateChange }) {
     startGame();
   }, []);
 
-  // Handle player playing a card
+  // Handle special card effects
+  const handleSpecialCardEffect = (card, player) => {
+    switch (card.effect) {
+      case 'reshuffle':
+        // Reshuffle both hands
+        const allCards = [...playerCards, ...opponentCards];
+        const shuffled = [...allCards].sort(() => Math.random() - 0.5);
+        // Don't include the special card in the reshuffle
+        const filteredShuffled = shuffled.filter(c => !c.effect);
+        setPlayerCards(filteredShuffled.slice(0, playerCards.length));
+        setOpponentCards(filteredShuffled.slice(playerCards.length));
+        break;
+
+      case 'double':
+        // Allow playing two cards
+        setCanPlayTwoCards(true);
+        setCardsPlayedThisTurn(0);
+        break;
+
+      case 'increment':
+        // Add 1 to center card value and give it to the player
+        if (centerCard) {
+          let newValue;
+          let newValueName;
+          
+          // Special case: if it's an Ace, wrap to 2
+          if (centerCard.valueName === 'A') {
+            newValue = 2;
+            newValueName = '2';
+          } else {
+            // Otherwise increment normally
+            newValue = centerCard.value + 1;
+            newValueName = VALUES[VALUES.indexOf(centerCard.valueName) + 1];
+          }
+
+          const incrementedCard = { 
+            ...centerCard, 
+            value: newValue,
+            valueName: newValueName,
+            id: `${centerCard.suit}-${newValueName}-plus1`
+          };
+          setPlayerCards(prev => [...prev, incrementedCard]);
+        }
+        break;
+
+      case 'dissolve':
+        // Remove the previous card
+        if (centerCard) {
+          setCenterCard(null);
+          setLastPlayedCard(null);
+          // Clear round cards to prevent affecting future plays
+          setRoundCards([]);
+        }
+        break;
+    }
+  };
+
+  // Modified playCard function to handle special cards
   const playCard = (cardId) => {
     if (currentPlayer !== 'player') return;
 
     const cardToPlay = playerCards.find(card => card.id === cardId);
     if (!cardToPlay) return;
 
-    // Check if the card can be played (must be strictly higher than center card)
+    // Handle special cards differently
+    if (cardToPlay.effect) {
+      // Remove card from player's hand
+      setPlayerCards(prev => prev.filter(card => card.id !== cardId));
+      // Add to special card pile
+      setSpecialCardPile(prev => [...prev, { ...cardToPlay, player: 'player' }]);
+      // Handle special card effect
+      handleSpecialCardEffect(cardToPlay, 'player');
+      // Don't change turn state for special cards
+      setRoundStarted(true);
+      setHasPlayedCard(true);
+      return;
+    }
+
+    // Regular card logic
     if (centerCard && cardToPlay.value < centerCard.value) {
       console.log('Card value too low to play');
       return;
     }
 
-    // If card value is equal to center card, player loses the round
     if (centerCard && cardToPlay.value === centerCard.value) {
       endRound('opponent');
       return;
@@ -89,43 +203,56 @@ export default function GameLogic({ onGameStateChange }) {
     setCenterCard(cardToPlay);
     setLastPlayedCard(cardToPlay);
     setRoundCards(prev => [...prev, { card: cardToPlay, player: 'player' }]);
-    setCurrentPlayer('opponent');
-    setRoundStarted(true);
-    setHasPlayedCard(true);
+
+    // Update turn state
+    if (canPlayTwoCards && cardsPlayedThisTurn < 1) {
+      setCardsPlayedThisTurn(prev => prev + 1);
+    } else {
+      setCurrentPlayer('opponent');
+      setRoundStarted(true);
+      setHasPlayedCard(true);
+      setCanPlayTwoCards(false);
+      setCardsPlayedThisTurn(0);
+    }
 
     // Check if player has no more cards
     if (playerCards.length === 1) {
-      // Only end the round if the opponent has played a card
       if (roundCards.some(card => card.player === 'opponent')) {
         endRound('player');
       }
     }
   };
 
-  // Handle end turn
-  const endTurn = () => {
-    if (currentPlayer !== 'player' || !roundStarted) return;
-    
-    if (!hasPlayedCard) {
-      endRound('opponent');
-    }
-  };
-
-  // Get playable cards
-  const getPlayableCards = () => {
-    if (!roundStarted) return playerCards;
-    return playerCards.filter(card => !centerCard || card.value > centerCard.value);
-  };
-
-  // Opponent's turn
+  // Modified opponent's turn logic to handle special cards
   useEffect(() => {
     if (currentPlayer === 'opponent' && !gameWinner) {
-      const playableCards = opponentCards.filter(card => 
+      // First check if there are any special cards that can be played
+      const specialCards = opponentCards.filter(card => card.effect);
+      const regularCards = opponentCards.filter(card => !card.effect);
+      
+      // If there are special cards, consider playing them
+      if (specialCards.length > 0) {
+        // 70% chance to play a special card if available
+        if (Math.random() < 0.7) {
+          const specialCardToPlay = specialCards[Math.floor(Math.random() * specialCards.length)];
+          setTimeout(() => {
+            setOpponentCards(prev => prev.filter(card => card.id !== specialCardToPlay.id));
+            setSpecialCardPile(prev => [...prev, { ...specialCardToPlay, player: 'opponent' }]);
+            handleSpecialCardEffect(specialCardToPlay, 'opponent');
+            // Don't change turn state for special cards
+            setHasPlayedCard(false);
+            setRoundStarted(true);
+          }, 1000);
+          return;
+        }
+      }
+
+      // If not playing a special card, proceed with regular card logic
+      const playableCards = regularCards.filter(card => 
         !centerCard || card.value > centerCard.value
       );
 
       if (playableCards.length === 0) {
-        // Opponent can't play any card
         endRound('player');
         return;
       }
@@ -140,22 +267,20 @@ export default function GameLogic({ onGameStateChange }) {
         setCenterCard(cardToPlay);
         setLastPlayedCard(cardToPlay);
         setRoundCards(prev => [...prev, { card: cardToPlay, player: 'opponent' }]);
+
         setCurrentPlayer('player');
         setHasPlayedCard(false);
         setRoundStarted(true);
 
-        // Show the "Play a Higher Card!" message if it's the opponent's first card
         if (isOpponentFirstCard) {
           setShowHigherCardMessage(true);
           setIsOpponentFirstCard(false);
           setTimeout(() => {
             setShowHigherCardMessage(false);
-          }, 2000); // Hide the message after 2 seconds
+          }, 2000);
         }
 
-        // Check if opponent has no more cards
         if (opponentCards.length === 1) {
-          // Only end the round if the player has played a card
           if (roundCards.some(card => card.player === 'player')) {
             endRound('opponent');
           }
@@ -163,6 +288,26 @@ export default function GameLogic({ onGameStateChange }) {
       }, 1000);
     }
   }, [currentPlayer, centerCard, opponentCards, gameWinner, isOpponentFirstCard]);
+
+  // Handle end turn
+  const endTurn = () => {
+    if (currentPlayer !== 'player' || !roundStarted) return;
+    
+    if (!hasPlayedCard) {
+      endRound('opponent');
+    }
+  };
+
+  // Get playable cards
+  const getPlayableCards = () => {
+    if (!roundStarted) return playerCards;
+    return playerCards.filter(card => {
+      // Special cards can always be played
+      if (card.effect) return true;
+      // Regular cards must be higher than center card
+      return !centerCard || card.value > centerCard.value;
+    });
+  };
 
   // End the current round
   const endRound = (winner) => {
@@ -219,24 +364,6 @@ export default function GameLogic({ onGameStateChange }) {
 
   // Effect to notify parent component of game state changes
   useEffect(() => {
-    console.log('Game state updated:', {
-      playerCards,
-      opponentCards,
-      currentRound,
-      playerScore,
-      opponentScore,
-      centerCard,
-      lastPlayedCard,
-      currentPlayer,
-      roundWinner,
-      gameWinner,
-      roundCards,
-      roundStarted,
-      hasPlayedCard,
-      showGameOver,
-      showHigherCardMessage,
-      playableCards: getPlayableCards()
-    });
     onGameStateChange({
       playerCards,
       opponentCards,
@@ -255,7 +382,8 @@ export default function GameLogic({ onGameStateChange }) {
       showHigherCardMessage,
       playableCards: getPlayableCards(),
       playCard,
-      endTurn
+      endTurn,
+      specialCardPile
     });
   }, [
     playerCards,
@@ -272,7 +400,8 @@ export default function GameLogic({ onGameStateChange }) {
     roundStarted,
     hasPlayedCard,
     showGameOver,
-    showHigherCardMessage
+    showHigherCardMessage,
+    specialCardPile
   ]);
 
   return null; // This component doesn't render anything directly
