@@ -420,6 +420,26 @@ T.page {
   backdrop-filter: blur(5px);
 }
 
+.higherCardMessage {
+  position: fixed;
+  top: 40%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-family: var(--font-pixel);
+  font-size: 2rem;
+  color: rgba(255, 255, 255, 0.95);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  text-shadow: 0 0 20px rgba(255, 0, 0, 0.7);
+  animation: fadeInOut 2s ease-in-out;
+  z-index: 10;
+  background: rgba(255, 0, 0, 0.15);
+  padding: 1rem 2rem;
+  border-radius: 8px;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(5px);
+}
+
 @keyframes pulse {
   0% {
     transform: translate(-50%, -50%) scale(1);
@@ -432,6 +452,25 @@ T.page {
   100% {
     transform: translate(-50%, -50%) scale(1);
     opacity: 0.8;
+  }
+}
+
+@keyframes fadeInOut {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.8);
+  }
+  20% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.1);
+  }
+  80% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.8);
   }
 }
 
