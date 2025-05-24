@@ -22,6 +22,9 @@ export default function Home() {
   const [showQuitPopup, setShowQuitPopup] = useState(false);
   const [matchesWon, setMatchesWon] = useState(0);
   const [matchesLost, setMatchesLost] = useState(0);
+  const [dontShowAgain, setDontShowAgain] = useState(false);
+  const [showFireWarning, setShowFireWarning] = useState(false);
+  const [showPeekedCard, setShowPeekedCard] = useState(false);
 
   const actuallyStartGame = () => {
     setGameStarted(true);
@@ -29,10 +32,11 @@ export default function Home() {
   };
 
   const handleStartGame = () => {
-    if (isFirstGame) {
-      setShowHowToPlay(true);
-    } else {
+    const hasOptedOut = localStorage.getItem('dontShowHowToPlay');
+    if (hasOptedOut) {
       actuallyStartGame();
+    } else {
+      setShowHowToPlay(true);
     }
   };
 
@@ -72,6 +76,18 @@ export default function Home() {
   const handleEndTurn = () => {
     if (!gameState) return;
     gameState.endTurn();
+  };
+
+  const handleCloseHowToPlay = () => {
+    setShowHowToPlay(false);
+    if (dontShowAgain) {
+      localStorage.setItem('dontShowHowToPlay', 'true');
+    }
+    actuallyStartGame();
+  };
+
+  const handleCheckboxChange = (event) => {
+    setDontShowAgain(event.target.checked);
   };
 
   return (
@@ -116,7 +132,7 @@ export default function Home() {
                 </div>
               )}
               {showHowToPlay && (
-                <div className={styles.modalOverlay} onClick={handleCloseHowToPlay}>
+                <div className={styles.modalOverlay} onClick={() => setShowHowToPlay(false)}>
                   <div className={styles.modal} onClick={e => e.stopPropagation()}>
                     <h2>How to Play</h2>
                     <div className={styles.modalContent}>
@@ -141,6 +157,11 @@ export default function Home() {
                       <p>• Save your best cards for the perfect moment</p>
                       <p>• Power-ups can turn the tide of battle!</p>
                     </div>
+                    <label className={styles.checkboxContainer}>
+                      <input type="checkbox" checked={dontShowAgain} onChange={handleCheckboxChange} />
+                      <span className={styles.checkmark}></span>
+                      Don't show this again
+                    </label>
                     <button className={styles.closeButton} onClick={handleCloseHowToPlay}>Let's Play!</button>
                   </div>
                 </div>
