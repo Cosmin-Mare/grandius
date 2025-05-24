@@ -96,7 +96,7 @@ export default function Home() {
         <ShaderCanvas gameState={gameStarted} day={gameState?.currentRound || 0} />
       </div>
       <Head>
-        <title>Decimanus</title>
+        <title>Grandius</title>
         <meta name="description" content="Bigger." />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
