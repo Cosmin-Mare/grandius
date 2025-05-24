@@ -72,7 +72,7 @@ export default function Home() {
           {!gameStarted && (
             <>
               <div className={styles.header}>
-                <h1>Grandius</h1>
+                <h1>Grandius <span className={styles.version}>v1.0.0</span></h1>
                 <h2>Bigger</h2>
               </div>
               <div className={styles.ctas}>
