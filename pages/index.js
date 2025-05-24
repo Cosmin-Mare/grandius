@@ -19,6 +19,8 @@ export default function Home() {
   const [showHowToPlay, setShowHowToPlay] = useState(false);
   const [showPlayPrompt, setShowPlayPrompt] = useState(true);
   const [showQuitPopup, setShowQuitPopup] = useState(false);
+  const [matchesWon, setMatchesWon] = useState(0);
+  const [matchesLost, setMatchesLost] = useState(0);
 
   const handleStartGame = () => {
     setGameStarted(true);
@@ -27,6 +29,20 @@ export default function Home() {
 
   const handleGameStateChange = (newState) => {
     setGameState(newState);
+    if (newState?.gameWinner && newState?.showGameOver) {
+      if (newState.gameWinner === 'player') {
+        setMatchesWon(prev => prev + 1);
+      } else if (newState.gameWinner === 'opponent') {
+        setMatchesLost(prev => prev + 1);
+      }
+    }
+  };
+
+  const handleNextMatch = () => {
+    setGameState(null);
+    setShowPlayPrompt(true);
+    setGameStarted(false);
+    setTimeout(() => setGameStarted(true), 0);
   };
 
   const handleCardClick = (cardId) => {
@@ -109,6 +125,10 @@ export default function Home() {
           )}
           {gameStarted && (
             <>
+              <div className={styles.matchScorePanel}>
+                <div>Matches Won: {matchesWon}</div>
+                <div>Matches Lost: {matchesLost}</div>
+              </div>
               <GameLogic onGameStateChange={handleGameStateChange} />
               <div className={styles.deck} />
               <div className={styles.gameInfo}>
@@ -121,19 +141,21 @@ export default function Home() {
                   {gameState?.currentPlayer === 'player' ? "Your turn" : "Opponent's turn"}
                 </div>
               </div>
-              <div className={styles.opponentCardsContainer}>
-                {gameState?.opponentCards?.map((card) => (
-                  <div key={card.id} className={styles.card}>
-                    <Image
-                      src={`/cards/${card.suit.charAt(0).toUpperCase()}${card.valueName}.png`}
-                      alt={`${card.valueName} of ${card.suit}`}
-                      width={60}
-                      height={84}
-                      className={styles.cardImage}
-                    />
-                  </div>
-                ))}
-              </div>
+              {!gameState?.gameWinner && (
+                <div className={styles.opponentCardsContainer}>
+                  {gameState?.opponentCards?.map((card) => (
+                    <div key={card.id} className={styles.card}>
+                      <Image
+                        src={"/cards/back.png"}
+                        alt="Card back"
+                        width={60}
+                        height={84}
+                        className={styles.cardImage}
+                      />
+                    </div>
+                  ))}
+                </div>
+              )}
               {showPlayPrompt && gameState?.currentPlayer === 'player' && (
                 <div className={styles.playPrompt}>
                   {gameState?.centerCard 
@@ -155,23 +177,26 @@ export default function Home() {
                 )}
               </div>
               <div className={styles.cardsContainer}>
-                {gameState?.playerCards?.map((card) => (
-                  <div 
-                    key={card.id} 
-                    className={`${styles.card} ${
-                      gameState.playableCards?.some(c => c.id === card.id) ? styles.playable : ''
-                    } ${gameState.lastPlayedCard?.id === card.id ? styles.selected : ''}`}
-                    onClick={() => handleCardClick(card.id)}
-                  >
-                    <Image
-                      src={`/cards/${card.suit.charAt(0).toUpperCase()}${card.valueName}.png`}
-                      alt={`${card.valueName} of ${card.suit}`}
-                      width={60}
-                      height={84}
-                      className={styles.cardImage}
-                    />
-                  </div>
-                ))}
+                {gameState?.playerCards?.map((card) => {
+                  const isPlayersTurn = gameState.currentPlayer === 'player';
+                  const isPlayable = isPlayersTurn && gameState.playableCards?.some(c => c.id === card.id);
+                  return (
+                    <div 
+                      key={card.id} 
+                      className={`${styles.card} ${isPlayable ? styles.playable : ''} ${gameState.lastPlayedCard?.id === card.id ? styles.selected : ''}`}
+                      onClick={isPlayable ? () => handleCardClick(card.id) : undefined}
+                      style={{ pointerEvents: isPlayersTurn ? 'auto' : 'none', opacity: isPlayersTurn ? 1 : 0.5 }}
+                    >
+                      <Image
+                        src={`/cards/${card.suit.charAt(0).toUpperCase()}${card.valueName}.png`}
+                        alt={`${card.valueName} of ${card.suit}`}
+                        width={60}
+                        height={84}
+                        className={styles.cardImage}
+                      />
+                    </div>
+                  );
+                })}
               </div>
               {gameState?.currentPlayer === 'player' && gameState?.roundStarted && (
                 <button 
@@ -182,7 +207,7 @@ export default function Home() {
                   End Turn
                 </button>
               )}
-              {gameState?.roundWinner && (
+              {gameState?.roundWinner && !gameState?.gameWinner && (
                 <div className={styles.roundResult}>
                   {gameState.roundWinner === 'player' ? 'You won this round!' : 
                    gameState.roundWinner === 'opponent' ? 'Opponent won this round!' : 
@@ -191,9 +216,21 @@ export default function Home() {
               )}
               {gameState?.gameWinner && gameState?.showGameOver && (
                 <div className={styles.gameResult}>
-                  {gameState.gameWinner === 'player' ? 'You won the game!' : 
-                   gameState.gameWinner === 'opponent' ? 'Opponent won the game!' : 
-                   'The game ended in a tie!'}
+                  <div>
+                    {gameState.gameWinner === 'player' ? 'You won the game!' : 
+                     gameState.gameWinner === 'opponent' ? 'Opponent won the game!' : 
+                     'The game ended in a tie!'}
+                  </div>
+                  <div className={styles.matchStats}>
+                    Matches Won: {matchesWon} | Matches Lost: {matchesLost}
+                  </div>
+                  <button 
+                    onClick={handleNextMatch} 
+                    className={styles.primary}
+                    style={{ marginTop: '1rem' }}
+                  >
+                    Play Again
+                  </button>
                 </div>
               )}
             </>
