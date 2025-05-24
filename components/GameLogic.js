@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { playCardSound, SOUND_PITCHES } from '@/utils/sound';
 
 // Debug card data - full deck with all suits and values
 const SUITS = ['hearts', 'diamonds', 'clubs', 'spades'];
@@ -175,6 +176,8 @@ export default function GameLogic({ onGameStateChange }) {
 
     // Handle special cards differently
     if (cardToPlay.effect) {
+      // Play special card sound
+      playCardSound(SOUND_PITCHES.SPECIAL_CARD);
       // Remove card from player's hand
       setPlayerCards(prev => prev.filter(card => card.id !== cardId));
       // Add to special card pile
@@ -197,6 +200,12 @@ export default function GameLogic({ onGameStateChange }) {
       endRound('opponent');
       return;
     }
+
+    // Play card sound with pitch based on card value
+    const pitch = cardToPlay.value > 10 ? SOUND_PITCHES.CARD_PLAY_HIGH : 
+                  cardToPlay.value < 5 ? SOUND_PITCHES.CARD_PLAY_LOW : 
+                  SOUND_PITCHES.CARD_PLAY;
+    playCardSound(pitch);
 
     // Remove card from player's hand
     setPlayerCards(prev => prev.filter(card => card.id !== cardId));
@@ -236,6 +245,8 @@ export default function GameLogic({ onGameStateChange }) {
         if (Math.random() < 0.7) {
           const specialCardToPlay = specialCards[Math.floor(Math.random() * specialCards.length)];
           setTimeout(() => {
+            // Play special card sound
+            playCardSound(SOUND_PITCHES.SPECIAL_CARD);
             setOpponentCards(prev => prev.filter(card => card.id !== specialCardToPlay.id));
             setSpecialCardPile(prev => [...prev, { ...specialCardToPlay, player: 'opponent' }]);
             handleSpecialCardEffect(specialCardToPlay, 'opponent');
@@ -263,6 +274,12 @@ export default function GameLogic({ onGameStateChange }) {
       );
 
       setTimeout(() => {
+        // Play card sound with pitch based on card value
+        const pitch = cardToPlay.value > 10 ? SOUND_PITCHES.CARD_PLAY_HIGH : 
+                      cardToPlay.value < 5 ? SOUND_PITCHES.CARD_PLAY_LOW : 
+                      SOUND_PITCHES.CARD_PLAY;
+        playCardSound(pitch);
+
         setOpponentCards(prev => prev.filter(card => card.id !== cardToPlay.id));
         setCenterCard(cardToPlay);
         setLastPlayedCard(cardToPlay);
@@ -314,6 +331,9 @@ export default function GameLogic({ onGameStateChange }) {
     console.log('Round ended, winner:', winner);
     setRoundWinner(winner);
     
+    // Play round end sound
+    playCardSound(winner === 'player' ? SOUND_PITCHES.ROUND_WIN : SOUND_PITCHES.ROUND_LOSE);
+    
     // Update scores
     if (winner === 'player') {
       setPlayerScore(prev => prev + 1);
@@ -353,10 +373,13 @@ export default function GameLogic({ onGameStateChange }) {
       
       if (finalPlayerScore > finalOpponentScore) {
         setGameWinner('player');
+        playCardSound(SOUND_PITCHES.GAME_WIN);
       } else if (finalOpponentScore > finalPlayerScore) {
         setGameWinner('opponent');
+        playCardSound(SOUND_PITCHES.GAME_LOSE);
       } else {
         setGameWinner('tie');
+        playCardSound(SOUND_PITCHES.CARD_PLAY);
       }
       setShowGameOver(true);
     }, 100); // Small delay to ensure scores are updated

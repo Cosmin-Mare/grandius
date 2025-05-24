@@ -251,6 +251,7 @@ export default function Home() {
                         width={60}
                         height={84}
                         className={styles.cardImage}
+                        priority={true}
                       />
                     </div>
                   );
