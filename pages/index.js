@@ -5,7 +5,7 @@ import { Press_Start_2P } from "next/font/google";
 import styles from "@/styles/Home.module.css";
 import ShaderCanvas from "@/components/ShaderCanvas";
 import GameLogic, { SPECIAL_CARDS } from "@/components/GameLogic";
-import { useState, useEffect, useEffect } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 
 const pressStart2P = Press_Start_2P({
