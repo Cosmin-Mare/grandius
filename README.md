@@ -1,40 +1,93 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/pages/api-reference/create-next-app).
+# Grandius - Bigger
+
+## Description
+
+Grandius is a competitive card game built with Next.js, featuring unique gameplay where players must play cards strictly higher than the one in the center. Win rounds, score points based on card values, and outsmart your opponent to become the ultimate card master!
+
+## Features
+
+- Engaging card game logic
+- Scoring system
+- Animated splash screen
+- Interactive "How to Play" guide
+- Dedicated Credits page
+- Responsive UI
+- Powered by React and Next.js
+- Dynamic background powered by WebGL shaders
 
 ## Getting Started
 
-First, run the development server:
+Follow these steps to get the project up and running on your local machine.
+
+### Prerequisites
+
+- Node.js (v14 or higher)
+- npm or yarn
+
+### Installation
+
+1. Clone the repository:
+   ```bash
+   git clone <repository_url>
+   cd grandius
+   ```
+
+2. Install dependencies:
+   ```bash
+   npm install
+   # or yarn install
+   ```
+
+### Running the Development Server
+
+To run the game in development mode:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+# or yarn dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-You can start editing the page by modifying `pages/index.js`. The page auto-updates as you edit the file.
+## How to Play
 
-[API routes](https://nextjs.org/docs/pages/building-your-application/routing/api-routes) can be accessed on [http://localhost:3000/api/hello](http://localhost:3000/api/hello). This endpoint can be edited in `pages/api/hello.js`.
+- **The Basics:** Play cards higher than your opponent. Win rounds to collect points.
+- **Scoring:** Win a round to score points equal to the value of the cards in the center. The player with the highest score after all rounds wins the game.
+- **Losing Conditions:** You lose a round if you play a card equal to the center card, cannot play a higher card, or run out of cards before your opponent in the round.
+- **Power-ups:** Special cards with unique abilities will be added in future updates.
 
-The `pages/api` directory is mapped to `/api/*`. Files in this directory are treated as [API routes](https://nextjs.org/docs/pages/building-your-application/routing/api-routes) instead of React pages.
+For more detailed instructions, check the "How to Play" section within the game.
 
-This project uses [`next/font`](https://nextjs.org/docs/pages/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Technologies Used
 
-## Learn More
+- Next.js
+- React
+- JavaScript
+- CSS Modules
+- WebGL (for background shader)
+- HTML
 
-To learn more about Next.js, take a look at the following resources:
+## Credits
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn-pages-router) - an interactive Next.js tutorial.
+This game was made with love by:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- Cosmin Mare
+- Nathan Yin
+- Simo
 
-## Deploy on Vercel
+Special thanks to Cool as Hack, the Next.js Team, and the WebGL community.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Future Enhancements
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/pages/building-your-application/deploying) for more details.
+- Multiplayer mode [In Development]
+- More special cards / power-ups:
+  - Random - takes both hands and reshuffles them
+  - Reverse - it reverses the turn [In Development]
+  - Two Turns - you can put 2 cards down
+  - Reader - you can read the opposite player's hand (highest card) [In Development]
+  - +1 - get center card plus one
+  - Fire - you give your opponent 2 seconds to play a card or they lose the round [In Development]
+  - Block - block a card rank for the entire match (they cannot play that card) [In Development]
+  - Dissolve - dissolve the previous card
+  - Blind - you blind your opponent for 1 turn, their cards are flipped, and they must choose one [In Development]
+- Improved UI/UX

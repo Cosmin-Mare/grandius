@@ -177,11 +177,44 @@ T.page {
   z-index: 10;
 }
 
+.mainLogoContainer {
+  position: fixed;
+  top: 60%;
+  left: calc(50% + 130px);
+  transform: translate(-50%, -50%);
+  z-index: 5;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.mainLogo {
+  width: 250px;
+  height: auto;
+  animation: pulse 3s ease-in-out infinite;
+  display: block;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.7);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
 .primary {
   background: rgba(128, 0, 255, 0.15);
   border: 2px solid rgba(255, 255, 255, 0.2);
   color: rgba(255, 255, 255, 0.95);
-  padding: 1.2rem 2.5rem;
+  padding: 1rem 2.5rem;
   font-size: 1.2rem;
   cursor: pointer;
   transition: all 0.3s ease;
@@ -195,6 +228,9 @@ T.page {
   image-rendering: crisp-edges;
   animation: floatCard 3s ease-in-out infinite;
   transform-origin: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .primary:hover {
@@ -798,4 +834,64 @@ T.page {
 
 .matchScorePanel div {
   margin: 0.5rem 0;
+}
+
+.creditsContent {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  max-width: 800px;
+  margin: 2rem auto;
+  padding: 2rem;
+  background: rgba(128, 0, 255, 0.1);
+  border-radius: 15px;
+  backdrop-filter: blur(5px);
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  margin-bottom: 120px;
+}
+
+.creditsBackButton {
+  position: fixed;
+  bottom: 40px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+}
+
+.creditSection {
+  text-align: center;
+}
+
+.creditSection h3 {
+  color: #FFD700;
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  text-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
+}
+
+.creditSection p {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 1.2rem;
+  margin: 0.5rem 0;
+  text-shadow: 0 0 10px rgba(128, 0, 255, 0.4);
+  animation: fadeIn 0.5s ease-out forwards;
+  opacity: 0;
+}
+
+.creditSection p:nth-child(2) { animation-delay: 0.2s; }
+.creditSection p:nth-child(3) { animation-delay: 0.4s; }
+.creditSection p:nth-child(4) { animation-delay: 0.6s; }
+.creditSection p:nth-child(5) { animation-delay: 0.8s; }
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }

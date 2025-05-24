@@ -5,7 +5,8 @@ import { Press_Start_2P } from "next/font/google";
 import styles from "@/styles/Home.module.css";
 import ShaderCanvas from "@/components/ShaderCanvas";
 import GameLogic from "@/components/GameLogic";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import Link from "next/link";
 
 const pressStart2P = Press_Start_2P({
   weight: "400",
@@ -21,10 +22,27 @@ export default function Home() {
   const [showQuitPopup, setShowQuitPopup] = useState(false);
   const [matchesWon, setMatchesWon] = useState(0);
   const [matchesLost, setMatchesLost] = useState(0);
+  const [isFirstGame, setIsFirstGame] = useState(true);
 
-  const handleStartGame = () => {
+  useEffect(() => {
+    // Check local storage on mount
+    const hasViewedHowToPlay = localStorage.getItem('hasViewedHowToPlay');
+    if (hasViewedHowToPlay) {
+      setIsFirstGame(false);
+    }
+  }, []);
+
+  const actuallyStartGame = () => {
     setGameStarted(true);
     setShowPlayPrompt(true);
+  };
+
+  const handleStartGame = () => {
+    if (isFirstGame) {
+      setShowHowToPlay(true);
+    } else {
+      actuallyStartGame();
+    }
   };
 
   const handleGameStateChange = (newState) => {
@@ -56,6 +74,15 @@ export default function Home() {
     gameState.endTurn();
   };
 
+  const handleCloseHowToPlay = () => {
+    setShowHowToPlay(false);
+    if (isFirstGame) {
+      localStorage.setItem('hasViewedHowToPlay', 'true');
+      setIsFirstGame(false);
+      actuallyStartGame();
+    }
+  };
+
   return (
     <>
       <div className={styles.shaderContainer}>
@@ -75,9 +102,15 @@ export default function Home() {
                 <h1>Grandius <span className={styles.version}>v1.0.0</span></h1>
                 <h2>Bigger</h2>
               </div>
+
+              <div className={styles.mainLogoContainer}>
+                <img src="/logo.png" alt="Grandius Logo" className={styles.mainLogo} />
+              </div>
+
               <div className={styles.ctas}>
                 <button className={styles.primary} onClick={handleStartGame}>Start</button>
                 <button className={styles.secondary} onClick={() => setShowHowToPlay(true)}>How to play</button>
+                <Link href="/credits" className={styles.secondary}>Credits</Link>
                 <button className={styles.secondary} onClick={() => setShowQuitPopup(true)}>Quit</button>
               </div>
               {showQuitPopup && (
@@ -92,7 +125,7 @@ export default function Home() {
                 </div>
               )}
               {showHowToPlay && (
-                <div className={styles.modalOverlay} onClick={() => setShowHowToPlay(false)}>
+                <div className={styles.modalOverlay} onClick={handleCloseHowToPlay}>
                   <div className={styles.modal} onClick={e => e.stopPropagation()}>
                     <h2>How to Play</h2>
                     <div className={styles.modalContent}>
@@ -117,7 +150,7 @@ export default function Home() {
                       <p>• Save your best cards for the perfect moment</p>
                       <p>• Power-ups can turn the tide of battle!</p>
                     </div>
-                    <button className={styles.closeButton} onClick={() => setShowHowToPlay(false)}>Let's Play!</button>
+                    <button className={styles.closeButton} onClick={handleCloseHowToPlay}>Let's Play!</button>
                   </div>
                 </div>
               )}
